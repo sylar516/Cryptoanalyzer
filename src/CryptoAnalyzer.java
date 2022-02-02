@@ -1,4 +1,6 @@
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class CryptoAnalyzer {
@@ -26,7 +28,7 @@ public class CryptoAnalyzer {
                     if (index == -1) {
                         continue;
                     }
-                    int shift = (index + key)%alphabet.length();
+                    int shift = (index + key) % alphabet.length();
                     if (shift < 0) shift = shift + alphabet.length();
                     chars[i] = alphabet.charAt(shift);
                 }
@@ -66,8 +68,8 @@ public class CryptoAnalyzer {
 
                     int shift;
                     if (key > 0) {
-                        shift = (index - key)%alphabet.length();
-                    } else shift = (index + key)%alphabet.length();
+                        shift = (index - key) % alphabet.length();
+                    } else shift = (index + key) % alphabet.length();
                     if (shift < 0) shift = shift + alphabet.length();
                     chars[i] = alphabet.charAt(shift);
                 }
@@ -108,7 +110,7 @@ public class CryptoAnalyzer {
                             continue;
                         }
 
-                        int shift = (index - key)%alphabet.length();
+                        int shift = (index - key) % alphabet.length();
                         if (shift < 0) shift = shift + alphabet.length();
                         chars[i] = alphabet.charAt(shift);
                     }
@@ -126,16 +128,16 @@ public class CryptoAnalyzer {
                     }
 
                     String[] stringsLength = string.split(" ");
-                    for(String s : stringsLength) {
+                    for (String s : stringsLength) {
                         if (s.length() > 25) {
                             isCorrectLength = false;
                         }
                     }
 
-                    String[] stringsPunct  = string.split("[?!.]");
-                    for(String s : stringsPunct) {
+                    String[] stringsPunct = string.split("[?!.]");
+                    for (String s : stringsPunct) {
                         if (stringsPunct.length == 1 | s.length() == 1 | s.isEmpty()) {
-                             break;
+                            break;
                         }
                         if (!s.startsWith(" ")) {
                             notCorrectPunct++;
@@ -148,7 +150,7 @@ public class CryptoAnalyzer {
                     countWords += words.length;
                 }
 
-                isCorrectPunct = notCorrectPunct > countWords/10 ? false : true;
+                isCorrectPunct = notCorrectPunct > countWords / 10 ? false : true;
 
                 if (isCorrectLength & isCorrectPunct) {
                     System.out.println("ключ подобран - " + key);
@@ -176,69 +178,70 @@ public class CryptoAnalyzer {
         System.out.println("Введи полный путь к файлу, в который хочешь записать расшифрованный текст:");
         String outputFileName = scanner.nextLine();
 
-        try (BufferedReader inputReader = new BufferedReader(new FileReader(inputFileName)); BufferedReader statReader = new BufferedReader(new FileReader(inputStatFileName)); BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
-            ArrayList<String> inputData = new ArrayList<>();
-            ArrayList<String> statData = new ArrayList<>();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Эльдар\\Desktop\\расшифрованный текст.txt"))) {
+
+            List<String> inputData = Files.readAllLines(Path.of(inputFileName));
+            List<String> statData = Files.readAllLines(Path.of(inputStatFileName));
             ArrayList<String> outputData = new ArrayList<>();
 
-            HashMap<Character, Double> inputChars = new HashMap<>();
-            HashMap<Character, Double> statChars = new HashMap<>();
-
-            double inputLengthText = 0;
-            double statLengthText = 0;
-
-            while (inputReader.ready()) {
-                String string = inputReader.readLine();
-                inputData.add(string);
-                inputLengthText += string.length();
-            }
-
-            //System.out.println(inputLengthText);
-
-            while (statReader.ready()) {
-                String string = statReader.readLine();
-                statData.add(string);
-                statLengthText += string.length();
-            }
-
-            //System.out.println(statLengthText);
+            HashMap<Character, Integer> inputChars = new HashMap<>();
+            HashMap<Character, Integer> statChars = new HashMap<>();
 
             for (String string : inputData) {
-                char[] chars = string.toCharArray();
+                char[] chars = string.toLowerCase().toCharArray();
                 for (char ch : chars) {
                     if (inputChars.get(ch) == null) {
-                        inputChars.put(ch, 1/inputLengthText);
-                    } else inputChars.put(ch, (inputChars.get(ch) + 1)/inputLengthText);
+                        inputChars.put(ch, 1);
+                    } else inputChars.put(ch, inputChars.get(ch) + 1);
                 }
             }
 
             for (String string : statData) {
-                char[] chars = string.toCharArray();
+                char[] chars = string.toLowerCase().toCharArray();
                 for (char ch : chars) {
                     if (statChars.get(ch) == null) {
-                        statChars.put(ch, 1/statLengthText);
-                    } else statChars.put(ch, (statChars.get(ch) + 1)/statLengthText);
+                        statChars.put(ch, 1);
+                    } else statChars.put(ch, statChars.get(ch) + 1);
                 }
             }
 
-            ArrayList<Map.Entry<Character, Double>> list = new ArrayList(inputChars.entrySet());
-            list.sort(new Comparator<Map.Entry<Character, Double>>() {
+            ArrayList<Map.Entry<Character, Integer>> inputList = new ArrayList(inputChars.entrySet());
+            inputList.sort(new Comparator<Map.Entry<Character, Integer>>() {
                 @Override
-                public int compare(Map.Entry<Character, Double> o1, Map.Entry<Character, Double> o2) {
-                    return (int) (o1.getValue() - o2.getValue());
+                public int compare(Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) {
+                    return (int) (o2.getValue() - o1.getValue());
                 }
             });
+            System.out.println(inputList);
 
-            /*for (int i = 0; i < list.size(); i++) {
-                double value1 = list.get(i).getValue();
-                double value2 = list.get(i + 1).getValue();
-                if (value1 > value2) {
-                    double temp = value1;
-                    value1 = value2;
-                    value2 = temp;
+            ArrayList<Map.Entry<Character, Integer>> statList = new ArrayList<>(statChars.entrySet());
+            statList.sort(new Comparator<Map.Entry<Character, Integer>>() {
+                @Override
+                public int compare(Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) {
+                    return (int) (o2.getValue() - o1.getValue());
                 }
-            }*/
+            });
+            System.out.println(statList);
 
+            HashMap<Character, Character> totalMap = new HashMap<>();
+
+            for (int i = 0; i < inputList.size(); i++) {
+                totalMap.put(inputList.get(i).getKey(), statList.get(i).getKey());
+            }
+
+            for (String string : inputData) {
+                char[] chars = string.toCharArray();
+                for (int i = 0; i < chars.length; i++) {
+                    if (totalMap.containsKey(chars[i])) {
+                        chars[i] = totalMap.get(chars[i]);
+                    }
+                }
+                outputData.add(new String(chars));
+            }
+
+            for (String string : outputData) {
+                writer.write(string + "\n");
+            }
         } catch (FileNotFoundException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
         } catch (IOException ioException) {
