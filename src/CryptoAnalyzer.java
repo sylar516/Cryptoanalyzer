@@ -59,20 +59,8 @@ public class CryptoAnalyzer {
             ArrayList<String> data = new ArrayList<>();
             while (bufferedReader.ready()) {
                 String string = bufferedReader.readLine();
-                char[] chars = string.toCharArray();
-                for (int i = 0; i < chars.length; i++) {
-                    int index = alphabet.indexOf(Character.toLowerCase(chars[i]));
-                    if (index == -1) {
-                        continue;
-                    }
-
-                    int shift = (index - key) % alphabet.length();
-                    if (shift < 0) {
-                        shift = shift + alphabet.length();
-                    }
-                    chars[i] = alphabet.charAt(shift);
-                }
-                data.add(new String(chars));
+                String decryptString = decryptString(string, key);
+                data.add(decryptString);
             }
 
             for (String string : data) {
@@ -101,18 +89,8 @@ public class CryptoAnalyzer {
 
             for (int key = 1; key < alphabet.length(); key++) {
                 for (String string : inputData) {
-                    char[] chars = string.toCharArray();
-                    for (int i = 0; i < chars.length; i++) {
-                        int index = alphabet.indexOf(Character.toLowerCase(chars[i]));
-                        if (index == -1) {
-                            continue;
-                        }
-
-                        int shift = (index - key) % alphabet.length();
-                        if (shift < 0) shift = shift + alphabet.length();
-                        chars[i] = alphabet.charAt(shift);
-                    }
-                    outputData.add(new String(chars));
+                    String decryptString = decryptString(string, key);
+                    outputData.add(decryptString);
                 }
 
                 boolean isCorrectLength = true;
@@ -228,6 +206,23 @@ public class CryptoAnalyzer {
         } catch (IOException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
         }
+    }
+
+    private String decryptString(String string, int key) {
+        char[] chars = string.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            int index = alphabet.indexOf(Character.toLowerCase(chars[i]));
+            if (index == -1) {
+                continue;
+            }
+
+            int shift = (index - key) % alphabet.length();
+            if (shift < 0) {
+                shift += alphabet.length();
+            }
+            chars[i] = alphabet.charAt(shift);
+        }
+        return new String(chars);
     }
 
     private ArrayList<Map.Entry<Character, Integer>> sortListMapEntry(HashMap<Character, Integer> chars) {
