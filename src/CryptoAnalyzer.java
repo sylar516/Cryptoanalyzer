@@ -7,6 +7,7 @@ public class CryptoAnalyzer {
 
     String alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя.,\":-!? ";
 
+    //Шифрование текста заданным ключом шифрования
     public void encrypt() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Введи полный путь к файлу, содержимое которого хочешь зашифровать:");
@@ -29,7 +30,7 @@ public class CryptoAnalyzer {
                         continue;
                     }
                     int shift = (index + key) % alphabet.length();
-                    if (shift < 0) shift = shift + alphabet.length();
+                    if (shift < 0) shift += alphabet.length();
                     chars[i] = alphabet.charAt(shift);
                 }
                 data.add(new String(chars));
@@ -38,13 +39,12 @@ public class CryptoAnalyzer {
             for (String string : data) {
                 bufferedWriter.write(string + "\n");
             }
-        } catch (FileNotFoundException fileNotFoundException) {
+        } catch (IOException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
         }
     }
 
+    //Расшифровка текста заданным ключом шифрования
     public void decryptKey() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Введи полный путь к файлу, содержимое которого хочешь расшифровать:");
@@ -66,11 +66,10 @@ public class CryptoAnalyzer {
                         continue;
                     }
 
-                    int shift;
-                    if (key > 0) {
-                        shift = (index - key) % alphabet.length();
-                    } else shift = (index + key) % alphabet.length();
-                    if (shift < 0) shift = shift + alphabet.length();
+                    int shift = (index - key) % alphabet.length();
+                    if (shift < 0) {
+                        shift = shift + alphabet.length();
+                    }
                     chars[i] = alphabet.charAt(shift);
                 }
                 data.add(new String(chars));
@@ -79,14 +78,13 @@ public class CryptoAnalyzer {
             for (String string : data) {
                 bufferedWriter.write(string + "\n");
             }
-        } catch (FileNotFoundException fileNotFoundException) {
+        } catch (IOException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
         }
     }
 
-    public void decryptBrut() { //пока что реализуем только для положительного ключа
+    //Расшифровка текста путём подбора подходящего ключа шифрования
+    public void decryptBrut() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Введи полный путь к файлу, содержимое которого хочешь расшифровать:");
         String inputFileName = scanner.nextLine();
@@ -118,7 +116,7 @@ public class CryptoAnalyzer {
                 }
 
                 boolean isCorrectLength = true;
-                boolean isCorrectPunct = true;
+                boolean isCorrectPunct;
                 int notCorrectPunct = 0;
                 int countWords = 0;
 
@@ -131,6 +129,7 @@ public class CryptoAnalyzer {
                     for (String s : stringsLength) {
                         if (s.length() > 25) {
                             isCorrectLength = false;
+                            break;
                         }
                     }
 
@@ -150,7 +149,7 @@ public class CryptoAnalyzer {
                     countWords += words.length;
                 }
 
-                isCorrectPunct = notCorrectPunct > countWords / 10 ? false : true;
+                isCorrectPunct = notCorrectPunct <= countWords / 10;
 
                 if (isCorrectLength & isCorrectPunct) {
                     System.out.println("ключ подобран - " + key);
@@ -162,13 +161,12 @@ public class CryptoAnalyzer {
             for (String string : outputData) {
                 bufferedWriter.write(string + "\n");
             }
-        } catch (FileNotFoundException fileNotFoundException) {
+        } catch (IOException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
         }
     }
 
+    //Расшифровка текста методом статистического анализа на основе загруженного дополнительного файла с текстом
     public void decryptStat() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Введи полный путь к файлу, содержимое которого хочешь расшифровать:");
@@ -178,7 +176,7 @@ public class CryptoAnalyzer {
         System.out.println("Введи полный путь к файлу, в который хочешь записать расшифрованный текст:");
         String outputFileName = scanner.nextLine();
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Эльдар\\Desktop\\расшифрованный текст.txt"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
 
             List<String> inputData = Files.readAllLines(Path.of(inputFileName));
             List<String> statData = Files.readAllLines(Path.of(inputStatFileName));
@@ -205,23 +203,8 @@ public class CryptoAnalyzer {
                 }
             }
 
-            ArrayList<Map.Entry<Character, Integer>> inputList = new ArrayList(inputChars.entrySet());
-            inputList.sort(new Comparator<Map.Entry<Character, Integer>>() {
-                @Override
-                public int compare(Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) {
-                    return (int) (o2.getValue() - o1.getValue());
-                }
-            });
-            System.out.println(inputList);
-
-            ArrayList<Map.Entry<Character, Integer>> statList = new ArrayList<>(statChars.entrySet());
-            statList.sort(new Comparator<Map.Entry<Character, Integer>>() {
-                @Override
-                public int compare(Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) {
-                    return (int) (o2.getValue() - o1.getValue());
-                }
-            });
-            System.out.println(statList);
+            ArrayList<Map.Entry<Character, Integer>> inputList = sortListMapEntry(inputChars);
+            ArrayList<Map.Entry<Character, Integer>> statList = sortListMapEntry(statChars);
 
             HashMap<Character, Character> totalMap = new HashMap<>();
 
@@ -242,10 +225,14 @@ public class CryptoAnalyzer {
             for (String string : outputData) {
                 writer.write(string + "\n");
             }
-        } catch (FileNotFoundException fileNotFoundException) {
+        } catch (IOException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
         }
+    }
+
+    private ArrayList<Map.Entry<Character, Integer>> sortListMapEntry(HashMap<Character, Integer> chars) {
+        ArrayList<Map.Entry<Character, Integer>> resultList = new ArrayList<>(chars.entrySet());
+        resultList.sort((o1, o2) -> o2.getValue() - o1.getValue());
+        return resultList;
     }
 }
