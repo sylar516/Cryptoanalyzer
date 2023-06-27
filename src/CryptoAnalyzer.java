@@ -2,6 +2,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.BiFunction;
 
 public class CryptoAnalyzer {
 
@@ -166,18 +167,14 @@ public class CryptoAnalyzer {
             for (String string : inputData) {
                 char[] chars = string.toLowerCase().toCharArray();
                 for (char ch : chars) {
-                    if (inputChars.get(ch) == null) {
-                        inputChars.put(ch, 1);
-                    } else inputChars.put(ch, inputChars.get(ch) + 1);
+                    inputChars.merge(ch, 1, Integer::sum);
                 }
             }
 
             for (String string : statData) {
                 char[] chars = string.toLowerCase().toCharArray();
                 for (char ch : chars) {
-                    if (statChars.get(ch) == null) {
-                        statChars.put(ch, 1);
-                    } else statChars.put(ch, statChars.get(ch) + 1);
+                    statChars.merge(ch, 1, Integer::sum);
                 }
             }
 
